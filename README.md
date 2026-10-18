@@ -1,10 +1,11 @@
-[Uploading README.txt…]()
-日韓單字 Lab - Vercel static deployment starter
+日韓單字 Lab - Supabase connected frontend
 
-1. Create a GitHub repository.
-2. Upload index.html to the repository root (not inside another folder).
-3. In Vercel, Add New -> Project, import that GitHub repository.
-4. For this static HTML prototype, keep Framework Preset as Other and leave Build Command and Output Directory blank/default.
-5. Click Deploy.
+1. Supabase Dashboard -> SQL Editor, paste and run schema.sql.
+2. Authentication -> Providers: ensure Email provider is enabled.
+3. Authentication -> URL Configuration: add your Vercel URL to allowed redirect URLs.
+4. Replace index.html in your GitHub repository root with this index.html and commit. Vercel should redeploy.
+5. Open the Vercel URL, create an account, verify email if requested, then sign in.
+6. Confirm the sync status. Export CSV before testing as a backup.
 
-Note: This version stores data in this browser only. It does not yet have login or cloud sync. Do not enter secrets or API keys into index.html.
+Security: the HTML includes only the public publishable key. Never put a secret/service_role key in browser code. RLS policies restrict records to the signed-in user.
+Limitations: initial sync merges by Chinese/Japanese/Korean term. Deletion propagation and robust concurrent edit conflict resolution are not yet implemented.
