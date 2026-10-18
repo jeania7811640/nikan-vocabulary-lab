@@ -7,12 +7,12 @@
 :root{--bg:#f5f6f8;--card:#fff;--ink:#202532;--muted:#687083;--line:#e4e7ed;--accent:#4c5fc5;--accent2:#e9ecff;--good:#18794e;--bad:#b54737}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Noto Sans TC","Noto Sans JP","Noto Sans KR",sans-serif}
 button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:#fff;color:var(--ink)}button.primary{background:var(--accent);border-color:var(--accent);color:white}button:disabled{opacity:.45;cursor:not-allowed}
-.wrap{max-width:1050px;margin:auto;padding:24px 18px 50px}.head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.brand{display:flex;gap:12px;align-items:center}.logo{width:48px;height:48px;border-radius:15px;background:var(--accent2);display:grid;place-items:center;font-size:23px}.sub,.muted{color:var(--muted);font-size:14px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:22px 0}.stat,.panel,.flash{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}.stat strong{display:block;font-size:25px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.tab.active{background:var(--accent2);border-color:#c8ceff;color:#273b9e}.layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.65fr);gap:16px}.flash{min-height:420px;display:flex;flex-direction:column;justify-content:space-between;text-align:center;padding:25px}.eyebrow{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.08em}.concept{font-size:clamp(27px,4vw,40px);font-weight:750;margin:12px 0}.word{font-size:clamp(25px,3vw,35px);font-weight:700}.reading{color:var(--muted);margin-top:3px}.answer{border-top:1px solid var(--line);margin-top:18px;padding-top:18px;text-align:left;display:grid;grid-template-columns:1fr 1fr;gap:12px}.langbox{background:#f8f9fc;border-radius:13px;padding:14px}.langbox h3{font-size:13px;color:var(--muted);margin:0 0 7px}.langbox p{margin:4px 0}.actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.section{margin-top:16px}.section h2{font-size:18px;margin:0 0 12px}.field{display:grid;gap:5px;margin:10px 0}.field label{font-size:13px;color:var(--muted)}input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}.wordlist{display:grid;gap:8px}.item{border:1px solid var(--line);border-radius:12px;padding:11px 12px;display:flex;justify-content:space-between;gap:12px;align-items:center}.item small{display:block;color:var(--muted)}.notice{padding:12px 14px;border-radius:12px;background:#fff7df;color:#72551a;font-size:14px}.success{color:var(--good)}.danger{color:var(--bad)}.hidden{display:none!important}footer{margin-top:22px;color:var(--muted);font-size:12px}
+.wrap{max-width:1050px;margin:auto;padding:24px 18px 50px}.head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.brand{display:flex;gap:12px;align-items:center}.logo{width:48px;height:48px;border-radius:15px;background:var(--accent2);display:grid;place-items:center;font-size:23px}.sub,.muted{color:var(--muted);font-size:14px}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:22px 0}.stat,.panel,.flash{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}.stat strong{display:block;font-size:25px}.stat-filter{cursor:pointer;transition:border-color .15s,background .15s}.stat-filter:hover,.stat-filter:focus{border-color:var(--accent);outline:none}.stat-filter.active{background:var(--accent2);border-color:var(--accent)}.stat .stat-label{font-size:13px;color:var(--muted)}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.tab.active{background:var(--accent2);border-color:#c8ceff;color:#273b9e}.layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.65fr);gap:16px}.flash{min-height:420px;display:flex;flex-direction:column;justify-content:space-between;text-align:center;padding:25px}.eyebrow{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.08em}.concept{font-size:clamp(27px,4vw,40px);font-weight:750;margin:12px 0}.word{font-size:clamp(25px,3vw,35px);font-weight:700}.reading{color:var(--muted);margin-top:3px}.answer{border-top:1px solid var(--line);margin-top:18px;padding-top:18px;text-align:left;display:grid;grid-template-columns:1fr 1fr;gap:12px}.langbox{background:#f8f9fc;border-radius:13px;padding:14px}.langbox h3{font-size:13px;color:var(--muted);margin:0 0 7px}.langbox p{margin:4px 0}.actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.section{margin-top:16px}.section h2{font-size:18px;margin:0 0 12px}.field{display:grid;gap:5px;margin:10px 0}.field label{font-size:13px;color:var(--muted)}input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}.wordlist{display:grid;gap:8px}.item{border:1px solid var(--line);border-radius:12px;padding:11px 12px;display:flex;justify-content:space-between;gap:12px;align-items:center}.item small{display:block;color:var(--muted)}.notice{padding:12px 14px;border-radius:12px;background:#fff7df;color:#72551a;font-size:14px}.success{color:var(--good)}.danger{color:var(--bad)}.hidden{display:none!important}footer{margin-top:22px;color:var(--muted);font-size:12px}
 @media(max-width:760px){.layout{grid-template-columns:1fr}.stats{gap:8px}.stat{padding:12px}.stat strong{font-size:21px}.flash{min-height:390px;padding:18px}.answer{grid-template-columns:1fr}.wrap{padding:16px 12px 35px}}
 </style></head>
 <body><main class="wrap">
 <header class="head"><div class="brand"><div class="logo">日韓</div><div><h1 style="font-size:24px;margin:0">日韓單字 Lab</h1><div class="sub">用同一個中文概念，連結日文與韓文</div></div></div><div class="row" style="flex:0 1 auto"><button id="exportBtn">匯出 CSV</button><button id="importBtn">匯入 CSV</button><input id="fileInput" type="file" accept=".csv,text/csv" class="hidden"></div></header>
-<div class="notice" style="margin-top:18px">目前版本會把單字與複習紀錄儲存在<strong>這台裝置的瀏覽器</strong>。雲端跨裝置同步需要登入系統與資料庫設定；本版本不會假裝已經完成雲端同步。請定期匯出 CSV 備份。</div>
+<div class="notice" id="storageNotice" style="margin-top:18px">正在確認雲端同步狀態…</div>
 <section class="panel section" id="cloudPanel">
   <h2 style="margin-top:0">☁️ 雲端同步</h2>
   <p class="muted">登入後，單字與複習進度會同步到你的 Supabase 帳號。第一次登入會合併這台裝置的單字與雲端單字。</p>
@@ -26,13 +26,21 @@ button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid
   </form>
   <p id="cloudMessage" class="muted" role="status"></p>
 </section>
-<section class="stats"><div class="stat"><span class="muted">單字總數</span><strong id="total">0</strong></div><div class="stat"><span class="muted">今天待複習</span><strong id="due">0</strong></div><div class="stat"><span class="muted">已熟悉</span><strong id="known">0</strong></div></section>
+<section class="stats" aria-label="單字統計">
+<div class="stat"><span class="muted">單字總數</span><strong id="total">0</strong></div>
+<div class="stat"><span class="muted">今天待複習</span><strong id="due">0</strong></div>
+<div class="stat stat-filter" role="button" tabindex="0" data-level="new" aria-pressed="false"><span class="stat-label">尚未學習</span><strong id="count-new">0</strong></div>
+<div class="stat stat-filter" role="button" tabindex="0" data-level="hard" aria-pressed="false"><span class="stat-label">需加強</span><strong id="count-hard">0</strong></div>
+<div class="stat stat-filter" role="button" tabindex="0" data-level="early" aria-pressed="false"><span class="stat-label">初步熟悉</span><strong id="count-early">0</strong></div>
+<div class="stat stat-filter" role="button" tabindex="0" data-level="familiar" aria-pressed="false"><span class="stat-label">熟悉</span><strong id="count-familiar">0</strong></div>
+<div class="stat stat-filter" role="button" tabindex="0" data-level="known" aria-pressed="false"><span class="stat-label">已熟悉</span><strong id="known">0</strong></div>
+</section>
 <div class="tabs"><button class="tab active" data-tab="study">單字卡</button><button class="tab" data-tab="library">單字庫</button><button class="tab" data-tab="add">新增單字</button><button class="tab" data-tab="settings">資料與設定</button></div>
-<div id="study" class="tabpane"><div class="layout"><section class="flash"><div><div class="row"><select id="deckFilter" aria-label="複習範圍"><option value="due">今天待複習</option><option value="all">全部單字</option><option value="new">尚未學習</option><option value="hard">需加強</option></select><select id="direction" aria-label="測驗方向"><option value="zh">看中文，回想日韓文</option><option value="jp">看日文，回想意思與韓文</option><option value="kr">看韓文，回想意思與日文</option></select></div><div class="eyebrow" id="counter" style="margin-top:24px">CARD 1</div><div id="front"><div class="concept">準備中…</div></div><div id="back" class="hidden"></div></div><div><div class="actions"><button id="audioJp">🔊 日文發音</button><button id="audioKr">🔊 韓文發音</button><button id="reveal" class="primary">翻開答案</button></div><div id="ratings" class="actions hidden"><button data-grade="again">還不熟</button><button data-grade="hard">有點難</button><button data-grade="good" class="primary">記住了</button><button data-grade="easy">很熟悉</button></div><div class="actions"><button id="prev">← 上一張</button><button id="next">下一張 →</button></div></div></section><aside class="panel"><h2 style="margin-top:0">複習小提示</h2><p class="muted">先看中文概念，在心中說出日文與韓文，再翻開答案。記得了就選「記住了」；忘記或不確定就選「還不熟」。</p><hr style="border:0;border-top:1px solid var(--line)"><p><strong>間隔複習</strong></p><p class="muted">答題後會依評分安排下次複習日期。此版本使用簡化的 SM-2 風格排程，方便個人練習，不是雲端帳號服務。</p><p id="sessionMsg" class="success"></p></aside></div></div>
+<div id="study" class="tabpane"><div class="layout"><section class="flash"><div><div class="row"><select id="deckFilter" aria-label="複習範圍"><option value="due">今天待複習</option><option value="all">全部單字</option><option value="new">尚未學習</option><option value="hard">需加強</option><option value="early">初步熟悉</option><option value="familiar">熟悉</option><option value="known">已熟悉</option></select><select id="direction" aria-label="測驗方向"><option value="zh">看中文，回想日韓文</option><option value="jp">看日文，回想意思與韓文</option><option value="kr">看韓文，回想意思與日文</option></select></div><div class="eyebrow" id="counter" style="margin-top:24px">CARD 1</div><div id="front"><div class="concept">準備中…</div></div><div id="back" class="hidden"></div></div><div><div class="actions"><button id="audioJp">🔊 日文發音</button><button id="audioKr">🔊 韓文發音</button><button id="reveal" class="primary">翻開答案</button></div><div id="ratings" class="actions hidden"><button data-grade="again">還不熟</button><button data-grade="hard">有點難</button><button data-grade="good" class="primary">記住了</button><button data-grade="easy">很熟悉</button></div><div class="actions"><button id="prev">← 上一張</button><button id="next">下一張 →</button></div></div></section><aside class="panel"><h2 style="margin-top:0">複習小提示</h2><p class="muted">先看中文概念，在心中說出日文與韓文，再翻開答案。記得了就選「記住了」；忘記或不確定就選「還不熟」。</p><hr style="border:0;border-top:1px solid var(--line)"><p><strong>間隔複習</strong></p><p class="muted">答題後會依評分安排下次複習日期。此版本使用簡化的 SM-2 風格排程；登入後，單字與複習進度會嘗試同步至雲端。</p><p id="sessionMsg" class="success"></p></aside></div></div>
 <div id="library" class="tabpane hidden"><section class="panel"><div class="row"><input id="search" placeholder="搜尋中文、日文、假名或韓文…"><select id="catFilter"><option value="">全部分類</option><option>日常生活</option><option>工作與學習</option><option>情緒與感受</option><option>自然與旅行</option><option>抽象概念</option><option>形容詞</option><option>其他</option></select></div><div id="wordList" class="wordlist section"></div></section></div>
 <div id="add" class="tabpane hidden"><section class="panel"><h2 style="margin-top:0">新增一組日韓對應詞</h2><form id="addForm"><div class="row"><div class="field"><label>中文概念 *</label><input id="zh" required placeholder="例如：熟悉、習慣"></div><div class="field"><label>分類</label><select id="category"><option>日常生活</option><option>工作與學習</option><option>情緒與感受</option><option>自然與旅行</option><option>抽象概念</option><option>形容詞</option><option>其他</option></select></div></div><div class="row"><div class="field"><label>日文 *</label><input id="jp" required placeholder="慣れる"></div><div class="field"><label>日文假名／讀音</label><input id="kana" placeholder="なれる"></div></div><div class="row"><div class="field"><label>韓文 *</label><input id="kr" required placeholder="익숙하다"></div><div class="field"><label>韓文羅馬拼音（選填）</label><input id="roman" placeholder="iksukhada"></div></div><div class="field"><label>日文例句（選填）</label><input id="exjp" placeholder="新しい環境に慣れました。"></div><div class="field"><label>韓文例句（選填）</label><input id="exkr" placeholder="새로운 환경에 익숙해졌어요."></div><button class="primary" type="submit">＋ 加入單字庫</button></form></section></div>
 <div id="settings" class="tabpane hidden"><section class="panel"><h2 style="margin-top:0">資料管理</h2><p class="muted">CSV 使用 UTF-8 編碼，欄位包含中文、日文、假名、韓文、羅馬拼音、例句、分類與複習紀錄。匯入時會合併新詞，不會刪除現有資料。</p><div class="actions" style="justify-content:flex-start"><button id="exportBtn2">下載 CSV 備份</button><button id="resetBtn" class="danger">重設為示範單字</button></div><hr style="border:0;border-top:1px solid var(--line);margin:20px 0"><h2>雲端同步部署說明</h2><p>本版本已加入 Supabase 登入與同步前端。部署前，必須先在 Supabase SQL Editor 執行隨附的 schema.sql，並在 Authentication 設定允許 Email 登入。公開 publishable key 可放在前端，但資料安全依賴 RLS 權限政策；絕不可將 service_role／secret key 放入 HTML。</p><p>語音使用瀏覽器內建 Speech Synthesis；可用語音取決於作業系統、瀏覽器與已安裝語音。若缺少日文或韓文語音，可能沒有聲音或使用不理想的聲線。</p></section></div>
-<footer>日韓單字 Lab · 個人學習原型 · 本機資料由瀏覽器管理</footer>
+<footer>日韓單字 Lab · 日韓單字與複習進度依登入狀態同步至 Supabase；請定期匯出 CSV 備份。</footer>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -42,9 +50,27 @@ const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBL
 let cloudUser = null;
 let cloudBusy = false;
 let cloudSaveTimer = null;
+let cloudSyncState = 'checking';
+function updateStorageNotice() {
+  const el=document.querySelector('#storageNotice');
+  if(!el) return;
+  if(!cloudUser) {
+    el.innerHTML='目前<strong>尚未登入雲端帳號</strong>；資料會暫存在這台裝置的瀏覽器。登入後才會同步至 Supabase。請定期匯出 CSV 備份。';
+    return;
+  }
+  if(cloudSyncState==='syncing') el.innerHTML='☁️ <strong>正在同步至雲端…</strong> 目前登入的單字與複習紀錄正在與 Supabase 同步。';
+  else if(cloudSyncState==='synced') el.innerHTML='☁️ <strong>已同步至雲端</strong> 單字與複習紀錄已成功寫入 Supabase。仍建議定期匯出 CSV 備份。';
+  else if(cloudSyncState==='error') el.innerHTML='⚠️ <strong>雲端同步失敗</strong> 目前瀏覽器仍保留本機資料，請查看下方錯誤訊息並匯出 CSV 備份。';
+  else el.innerHTML='☁️ <strong>已登入雲端帳號</strong>，正在確認單字與複習紀錄的同步狀態…';
+}
 function setCloudMessage(message, isError=false) {
   const el=document.querySelector('#cloudMessage');
   if(el){el.textContent=message;el.className=isError?'danger':'muted';}
+  if(isError) cloudSyncState='error';
+  else if(/正在|等待雲端同步|處理中|合併本機/i.test(message)) cloudSyncState='syncing';
+  else if(/同步完成|同步成功|已同步/i.test(message)) cloudSyncState='synced';
+  else if(!cloudUser) cloudSyncState='local';
+  updateStorageNotice();
 }
 function setAuthUI() {
   const status=document.querySelector('#authStatus');
@@ -65,10 +91,12 @@ function setAuthUI() {
     email.disabled=false;
     document.querySelector('#authPassword').classList.remove('hidden');
   }
+  updateStorageNotice();
 }
 async function pushCloud(silent=false) {
   if(!supabaseClient || !cloudUser || cloudBusy) return;
   cloudBusy=true;
+  if(!silent){cloudSyncState='syncing';updateStorageNotice();setCloudMessage('正在同步單字與複習紀錄…');}
   try {
     const payload=words.map(w=>{
       w.client_id=w.client_id||crypto.randomUUID();
@@ -79,7 +107,7 @@ async function pushCloud(silent=false) {
       const {error}=await supabaseClient.from('vocabulary_cards').upsert(payload,{onConflict:'user_id,client_id'});
       if(error) throw error;
     }
-    if(!silent) setCloudMessage('雲端同步完成 · '+new Date().toLocaleTimeString());
+    if(!silent) setCloudMessage('已同步至雲端 · '+new Date().toLocaleTimeString());
   } catch(e) {
     setCloudMessage('雲端同步失敗：'+e.message+'。本機資料仍保留，請先匯出 CSV 備份。',true);
   } finally {cloudBusy=false;}
@@ -110,8 +138,11 @@ async function cloudMergeAndLoad() {
   setCloudMessage('同步完成：'+words.length+' 組單字已合併。');
 }
 function scheduleCloudSave(){
-  if(!cloudUser) return;
+  if(!cloudUser) { updateStorageNotice(); return; }
   clearTimeout(cloudSaveTimer);
+  cloudSyncState='syncing';
+  updateStorageNotice();
+  setCloudMessage('資料已更新，等待雲端同步…');
   cloudSaveTimer=setTimeout(()=>pushCloud(),900);
 }
 async function initCloudAuth(){
@@ -177,10 +208,39 @@ function load(){try{const d=JSON.parse(localStorage.getItem(KEY));words=Array.is
 function save(){words.forEach(w=>{w.client_id=w.client_id||crypto.randomUUID();w.updatedAt=new Date().toISOString()});localStorage.setItem(KEY,JSON.stringify(words));renderStats();scheduleCloudSave()}
 const today=()=>new Date().toISOString().slice(0,10);
 function due(w){return !w.nextReview||w.nextReview<=today()}
-function list(){const f=document.querySelector('#deckFilter').value;return words.map((w,i)=>({...w,_i:i})).filter(w=>f==='all'||(f==='due'&&due(w))||(f==='new'&&!w.repetitions)||(f==='hard'&&w.lastGrade==='again'||f==='hard'&&w.lastGrade==='hard'))}
+function familiarity(w){
+  const reps=Number(w.repetitions||0), interval=Number(w.interval||0);
+  if(w.lastGrade==='again'||w.lastGrade==='hard') return 'hard';
+  if(w.lastGrade==='easy'||interval>=14) return 'known';
+  if(reps===0&&!w.lastGrade) return 'new';
+  if(interval>=4) return 'familiar';
+  return 'early';
+}
+function list(){
+  const f=document.querySelector('#deckFilter').value;
+  return words.map((w,i)=>({...w,_i:i})).filter(w=>{
+    if(f==='all') return true;
+    if(f==='due') return due(w);
+    return familiarity(w)===f;
+  });
+}
 function current(){const a=list();if(!a.length)return null;idx=((idx%a.length)+a.length)%a.length;return a[idx]}
 function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function renderStats(){document.querySelector('#total').textContent=words.length;document.querySelector('#due').textContent=words.filter(due).length;document.querySelector('#known').textContent=words.filter(w=>(w.interval||0)>=14).length}
+function renderStats(){
+  document.querySelector('#total').textContent=words.length;
+  document.querySelector('#due').textContent=words.filter(due).length;
+  const counts={new:0,hard:0,early:0,familiar:0,known:0};
+  words.forEach(w=>counts[familiarity(w)]++);
+  document.querySelector('#count-new').textContent=counts.new;
+  document.querySelector('#count-hard').textContent=counts.hard;
+  document.querySelector('#count-early').textContent=counts.early;
+  document.querySelector('#count-familiar').textContent=counts.familiar;
+  document.querySelector('#known').textContent=counts.known;
+  document.querySelectorAll('.stat-filter').forEach(el=>{
+    const active=document.querySelector('#deckFilter').value===el.dataset.level;
+    el.classList.toggle('active',active);el.setAttribute('aria-pressed',String(active));
+  });
+}
 function renderCard(){const w=current(),front=document.querySelector('#front'),back=document.querySelector('#back');revealed=false;document.querySelector('#back').classList.add('hidden');document.querySelector('#ratings').classList.add('hidden');document.querySelector('#reveal').classList.remove('hidden');if(!w){document.querySelector('#counter').textContent='完成';front.innerHTML='<div class="concept">這個範圍暫時沒有單字 🎉</div><p class="muted">試試「全部單字」或新增單字。</p>';return}
 document.querySelector('#counter').textContent=`CARD ${idx+1} / ${list().length}`;
 const dir=document.querySelector('#direction').value;
@@ -201,7 +261,13 @@ function importCSV(text){const rows=parseCSV(text.replace(/^\uFEFF/,''));if(rows
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('hidden',p.id!==b.dataset.tab));if(b.dataset.tab==='library')renderList()}));
 document.querySelector('#reveal').onclick=reveal;document.querySelector('#prev').onclick=()=>{idx=(idx-1+Math.max(1,list().length))%Math.max(1,list().length);renderCard()};document.querySelector('#next').onclick=()=>{idx=(idx+1)%Math.max(1,list().length);renderCard()};
 document.querySelector('#ratings').addEventListener('click',e=>{const b=e.target.closest('[data-grade]');if(b)grade(b.dataset.grade)});
-document.querySelector('#deckFilter').onchange=()=>{idx=0;renderCard()};document.querySelector('#direction').onchange=renderCard;
+document.querySelector('#deckFilter').onchange=()=>{idx=0;renderStats();renderCard()};
+document.querySelectorAll('.stat-filter').forEach(el=>{
+  const activate=()=>{document.querySelector('#deckFilter').value=el.dataset.level;idx=0;renderStats();renderCard();document.querySelector('[data-tab="study"]').click();};
+  el.addEventListener('click',activate);
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});
+});
+document.querySelector('#direction').onchange=renderCard;
 document.querySelector('#audioJp').onclick=()=>{const w=current();if(w)speak(w.kana||w.jp,'ja-JP')};document.querySelector('#audioKr').onclick=()=>{const w=current();if(w)speak(w.kr,'ko-KR')};
 document.querySelector('#addForm').onsubmit=e=>{e.preventDefault();const get=id=>document.getElementById(id).value.trim();words.push({zh:get('zh'),jp:get('jp'),kana:get('kana'),kr:get('kr'),roman:get('roman'),exjp:get('exjp'),exkr:get('exkr'),category:get('category'),repetitions:0,interval:0,ease:2.5,nextReview:today()});save();e.target.reset();document.querySelector('[data-tab="study"]').click();idx=list().length-1;renderCard();alert('已加入單字庫！')};
 document.querySelector('#search').oninput=renderList;document.querySelector('#catFilter').onchange=renderList;document.querySelector('#wordList').onclick=e=>{const b=e.target.closest('[data-del]');if(!b)return;if(confirm('確定刪除這個單字？')){words.splice(Number(b.dataset.del),1);save();renderList();renderCard()}};
