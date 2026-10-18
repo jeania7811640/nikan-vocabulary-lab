@@ -13,14 +13,141 @@ button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid
 <body><main class="wrap">
 <header class="head"><div class="brand"><div class="logo">日韓</div><div><h1 style="font-size:24px;margin:0">日韓單字 Lab</h1><div class="sub">用同一個中文概念，連結日文與韓文</div></div></div><div class="row" style="flex:0 1 auto"><button id="exportBtn">匯出 CSV</button><button id="importBtn">匯入 CSV</button><input id="fileInput" type="file" accept=".csv,text/csv" class="hidden"></div></header>
 <div class="notice" style="margin-top:18px">目前版本會把單字與複習紀錄儲存在<strong>這台裝置的瀏覽器</strong>。雲端跨裝置同步需要登入系統與資料庫設定；本版本不會假裝已經完成雲端同步。請定期匯出 CSV 備份。</div>
+<section class="panel section" id="cloudPanel">
+  <h2 style="margin-top:0">☁️ 雲端同步</h2>
+  <p class="muted">登入後，單字與複習進度會同步到你的 Supabase 帳號。第一次登入會合併這台裝置的單字與雲端單字。</p>
+  <div id="authStatus" class="muted">正在檢查雲端連線…</div>
+  <form id="authForm" class="section">
+    <div class="row">
+      <div class="field"><label for="authEmail">電子郵件</label><input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+      <div class="field"><label for="authPassword">密碼（至少 8 字元）</label><input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="至少 8 個字元"></div>
+    </div>
+    <div class="actions" style="justify-content:flex-start"><button type="button" class="primary" id="signInBtn">登入並同步</button><button type="button" id="signUpBtn">建立帳號</button><button type="button" id="signOutBtn" class="hidden">登出</button></div>
+  </form>
+  <p id="cloudMessage" class="muted" role="status"></p>
+</section>
 <section class="stats"><div class="stat"><span class="muted">單字總數</span><strong id="total">0</strong></div><div class="stat"><span class="muted">今天待複習</span><strong id="due">0</strong></div><div class="stat"><span class="muted">已熟悉</span><strong id="known">0</strong></div></section>
 <div class="tabs"><button class="tab active" data-tab="study">單字卡</button><button class="tab" data-tab="library">單字庫</button><button class="tab" data-tab="add">新增單字</button><button class="tab" data-tab="settings">資料與設定</button></div>
 <div id="study" class="tabpane"><div class="layout"><section class="flash"><div><div class="row"><select id="deckFilter" aria-label="複習範圍"><option value="due">今天待複習</option><option value="all">全部單字</option><option value="new">尚未學習</option><option value="hard">需加強</option></select><select id="direction" aria-label="測驗方向"><option value="zh">看中文，回想日韓文</option><option value="jp">看日文，回想意思與韓文</option><option value="kr">看韓文，回想意思與日文</option></select></div><div class="eyebrow" id="counter" style="margin-top:24px">CARD 1</div><div id="front"><div class="concept">準備中…</div></div><div id="back" class="hidden"></div></div><div><div class="actions"><button id="audioJp">🔊 日文發音</button><button id="audioKr">🔊 韓文發音</button><button id="reveal" class="primary">翻開答案</button></div><div id="ratings" class="actions hidden"><button data-grade="again">還不熟</button><button data-grade="hard">有點難</button><button data-grade="good" class="primary">記住了</button><button data-grade="easy">很熟悉</button></div><div class="actions"><button id="prev">← 上一張</button><button id="next">下一張 →</button></div></div></section><aside class="panel"><h2 style="margin-top:0">複習小提示</h2><p class="muted">先看中文概念，在心中說出日文與韓文，再翻開答案。記得了就選「記住了」；忘記或不確定就選「還不熟」。</p><hr style="border:0;border-top:1px solid var(--line)"><p><strong>間隔複習</strong></p><p class="muted">答題後會依評分安排下次複習日期。此版本使用簡化的 SM-2 風格排程，方便個人練習，不是雲端帳號服務。</p><p id="sessionMsg" class="success"></p></aside></div></div>
 <div id="library" class="tabpane hidden"><section class="panel"><div class="row"><input id="search" placeholder="搜尋中文、日文、假名或韓文…"><select id="catFilter"><option value="">全部分類</option><option>日常生活</option><option>工作與學習</option><option>情緒與感受</option><option>自然與旅行</option><option>抽象概念</option><option>形容詞</option><option>其他</option></select></div><div id="wordList" class="wordlist section"></div></section></div>
 <div id="add" class="tabpane hidden"><section class="panel"><h2 style="margin-top:0">新增一組日韓對應詞</h2><form id="addForm"><div class="row"><div class="field"><label>中文概念 *</label><input id="zh" required placeholder="例如：熟悉、習慣"></div><div class="field"><label>分類</label><select id="category"><option>日常生活</option><option>工作與學習</option><option>情緒與感受</option><option>自然與旅行</option><option>抽象概念</option><option>形容詞</option><option>其他</option></select></div></div><div class="row"><div class="field"><label>日文 *</label><input id="jp" required placeholder="慣れる"></div><div class="field"><label>日文假名／讀音</label><input id="kana" placeholder="なれる"></div></div><div class="row"><div class="field"><label>韓文 *</label><input id="kr" required placeholder="익숙하다"></div><div class="field"><label>韓文羅馬拼音（選填）</label><input id="roman" placeholder="iksukhada"></div></div><div class="field"><label>日文例句（選填）</label><input id="exjp" placeholder="新しい環境に慣れました。"></div><div class="field"><label>韓文例句（選填）</label><input id="exkr" placeholder="새로운 환경에 익숙해졌어요."></div><button class="primary" type="submit">＋ 加入單字庫</button></form></section></div>
-<div id="settings" class="tabpane hidden"><section class="panel"><h2 style="margin-top:0">資料管理</h2><p class="muted">CSV 使用 UTF-8 編碼，欄位包含中文、日文、假名、韓文、羅馬拼音、例句、分類與複習紀錄。匯入時會合併新詞，不會刪除現有資料。</p><div class="actions" style="justify-content:flex-start"><button id="exportBtn2">下載 CSV 備份</button><button id="resetBtn" class="danger">重設為示範單字</button></div><hr style="border:0;border-top:1px solid var(--line);margin:20px 0"><h2>雲端同步部署說明</h2><p>真正的跨裝置同步需要：① 託管前端（例如 GitHub Pages、Netlify 或 Vercel）；② 雲端資料庫與登入（例如 Supabase）；③ 每位使用者的資料權限規則；④ 將目前 localStorage 資料遷移到登入帳號。此 HTML 單檔沒有伺服器、登入、雲端資料庫或自動同步能力，也不會將資料上傳到任何地方。</p><p>語音使用瀏覽器內建 Speech Synthesis；可用語音取決於作業系統、瀏覽器與已安裝語音。若缺少日文或韓文語音，可能沒有聲音或使用不理想的聲線。</p></section></div>
+<div id="settings" class="tabpane hidden"><section class="panel"><h2 style="margin-top:0">資料管理</h2><p class="muted">CSV 使用 UTF-8 編碼，欄位包含中文、日文、假名、韓文、羅馬拼音、例句、分類與複習紀錄。匯入時會合併新詞，不會刪除現有資料。</p><div class="actions" style="justify-content:flex-start"><button id="exportBtn2">下載 CSV 備份</button><button id="resetBtn" class="danger">重設為示範單字</button></div><hr style="border:0;border-top:1px solid var(--line);margin:20px 0"><h2>雲端同步部署說明</h2><p>本版本已加入 Supabase 登入與同步前端。部署前，必須先在 Supabase SQL Editor 執行隨附的 schema.sql，並在 Authentication 設定允許 Email 登入。公開 publishable key 可放在前端，但資料安全依賴 RLS 權限政策；絕不可將 service_role／secret key 放入 HTML。</p><p>語音使用瀏覽器內建 Speech Synthesis；可用語音取決於作業系統、瀏覽器與已安裝語音。若缺少日文或韓文語音，可能沒有聲音或使用不理想的聲線。</p></section></div>
 <footer>日韓單字 Lab · 個人學習原型 · 本機資料由瀏覽器管理</footer>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://fqrjncmrcqjdkgbymnga.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_raDy-PykHHSQXNUnq53ybw_SZBjkzCt';
+const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let cloudUser = null;
+let cloudBusy = false;
+let cloudSaveTimer = null;
+function setCloudMessage(message, isError=false) {
+  const el=document.querySelector('#cloudMessage');
+  if(el){el.textContent=message;el.className=isError?'danger':'muted';}
+}
+function setAuthUI() {
+  const status=document.querySelector('#authStatus');
+  if(!supabaseClient){status.textContent='Supabase SDK 載入失敗，請檢查網路連線。';return;}
+  const email=document.querySelector('#authEmail');
+  if(cloudUser){
+    status.textContent='已登入：'+cloudUser.email+' · 雲端同步已啟用';
+    document.querySelector('#signInBtn').classList.add('hidden');
+    document.querySelector('#signUpBtn').classList.add('hidden');
+    document.querySelector('#signOutBtn').classList.remove('hidden');
+    email.disabled=true;
+    document.querySelector('#authPassword').classList.add('hidden');
+  } else {
+    status.textContent='尚未登入：目前資料只保存在此瀏覽器。';
+    document.querySelector('#signInBtn').classList.remove('hidden');
+    document.querySelector('#signUpBtn').classList.remove('hidden');
+    document.querySelector('#signOutBtn').classList.add('hidden');
+    email.disabled=false;
+    document.querySelector('#authPassword').classList.remove('hidden');
+  }
+}
+async function pushCloud(silent=false) {
+  if(!supabaseClient || !cloudUser || cloudBusy) return;
+  cloudBusy=true;
+  try {
+    const payload=words.map(w=>{
+      w.client_id=w.client_id||crypto.randomUUID();
+      w.updatedAt=w.updatedAt||new Date().toISOString();
+      return {user_id:cloudUser.id,client_id:w.client_id,data:{...w},updated_at:new Date().toISOString()};
+    });
+    if(payload.length){
+      const {error}=await supabaseClient.from('vocabulary_cards').upsert(payload,{onConflict:'user_id,client_id'});
+      if(error) throw error;
+    }
+    if(!silent) setCloudMessage('雲端同步完成 · '+new Date().toLocaleTimeString());
+  } catch(e) {
+    setCloudMessage('雲端同步失敗：'+e.message+'。本機資料仍保留，請先匯出 CSV 備份。',true);
+  } finally {cloudBusy=false;}
+}
+async function cloudMergeAndLoad() {
+  if(!supabaseClient || !cloudUser) return;
+  setCloudMessage('正在合併本機與雲端單字…');
+  const {data:rows,error}=await supabaseClient.from('vocabulary_cards').select('client_id,data,updated_at').eq('user_id',cloudUser.id);
+  if(error){setCloudMessage('讀取雲端失敗：'+error.message+'。請確認已執行 schema.sql。',true);return;}
+  const local=Array.isArray(words)?words:[];
+  const cloud=(rows||[]).map(r=>({...r.data,client_id:r.client_id}));
+  const merged=[], seen=new Map();
+  const key=w=>[w.zh||'',w.jp||'',w.kr||''].join('||');
+  for(const w of [...cloud,...local]){
+    const k=key(w);
+    if(seen.has(k)){
+      const existing=merged[seen.get(k)];
+      if(w.updatedAt && (!existing.updatedAt || w.updatedAt>existing.updatedAt)) merged[seen.get(k)]={...existing,...w};
+      continue;
+    }
+    seen.set(k,merged.length);
+    merged.push({...w,client_id:w.client_id||crypto.randomUUID(),updatedAt:w.updatedAt||new Date().toISOString()});
+  }
+  words=merged;
+  localStorage.setItem(KEY,JSON.stringify(words));
+  renderStats();renderCard();renderList();
+  await pushCloud(true);
+  setCloudMessage('同步完成：'+words.length+' 組單字已合併。');
+}
+function scheduleCloudSave(){
+  if(!cloudUser) return;
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer=setTimeout(()=>pushCloud(),900);
+}
+async function initCloudAuth(){
+  if(!supabaseClient){setCloudMessage('Supabase SDK 載入失敗。',true);setAuthUI();return;}
+  try{
+    const {data,error}=await supabaseClient.auth.getSession();
+    if(error) throw error;
+    cloudUser=data.session?.user||null;
+    setAuthUI();
+    if(cloudUser) await cloudMergeAndLoad();
+    supabaseClient.auth.onAuthStateChange((event,session)=>{
+      cloudUser=session?.user||null;
+      setAuthUI();
+      if(event==='SIGNED_IN' && cloudUser) setTimeout(()=>cloudMergeAndLoad(),0);
+      if(event==='SIGNED_OUT') setCloudMessage('已登出；目前瀏覽器中的本機資料仍保留。');
+    });
+  }catch(e){setCloudMessage('登入狀態檢查失敗：'+e.message,true);}
+}
+async function authAction(action){
+  const email=document.querySelector('#authEmail').value.trim();
+  const password=document.querySelector('#authPassword').value;
+  if(!email||password.length<8){setCloudMessage('請輸入有效電子郵件與至少 8 個字元的密碼。',true);return;}
+  setCloudMessage('正在處理…');
+  const result=action==='signup'
+    ? await supabaseClient.auth.signUp({email,password})
+    : await supabaseClient.auth.signInWithPassword({email,password});
+  if(result.error){setCloudMessage(result.error.message,true);return;}
+  if(action==='signup'&&!result.data.session){
+    setCloudMessage('帳號已建立。請查看電子郵件完成驗證，再回來登入。');
+  } else {
+    cloudUser=result.data.user||result.data.session?.user||null;
+    setAuthUI();
+    if(cloudUser) await cloudMergeAndLoad();
+  }
+}
+</script>
 <script>
 const KEY='nikan_vocab_lab_v1';
 const seed=[
@@ -47,7 +174,7 @@ const seed=[
 ];
 let words=[],idx=0,revealed=false;
 function load(){try{const d=JSON.parse(localStorage.getItem(KEY));words=Array.isArray(d)&&d.length?d:structuredClone(seed)}catch{words=structuredClone(seed)}}
-function save(){localStorage.setItem(KEY,JSON.stringify(words));renderStats()}
+function save(){words.forEach(w=>{w.client_id=w.client_id||crypto.randomUUID();w.updatedAt=new Date().toISOString()});localStorage.setItem(KEY,JSON.stringify(words));renderStats();scheduleCloudSave()}
 const today=()=>new Date().toISOString().slice(0,10);
 function due(w){return !w.nextReview||w.nextReview<=today()}
 function list(){const f=document.querySelector('#deckFilter').value;return words.map((w,i)=>({...w,_i:i})).filter(w=>f==='all'||(f==='due'&&due(w))||(f==='new'&&!w.repetitions)||(f==='hard'&&w.lastGrade==='again'||f==='hard'&&w.lastGrade==='hard'))}
@@ -80,5 +207,8 @@ document.querySelector('#addForm').onsubmit=e=>{e.preventDefault();const get=id=
 document.querySelector('#search').oninput=renderList;document.querySelector('#catFilter').onchange=renderList;document.querySelector('#wordList').onclick=e=>{const b=e.target.closest('[data-del]');if(!b)return;if(confirm('確定刪除這個單字？')){words.splice(Number(b.dataset.del),1);save();renderList();renderCard()}};
 document.querySelector('#exportBtn').onclick=document.querySelector('#exportBtn2').onclick=exportCSV;document.querySelector('#importBtn').onclick=()=>document.querySelector('#fileInput').click();document.querySelector('#fileInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{importCSV(await f.text())}catch(err){alert('匯入失敗：'+err.message)}e.target.value=''};
 document.querySelector('#resetBtn').onclick=()=>{if(confirm('這會刪除目前瀏覽器內的單字與進度，並恢復示範單字。請先匯出備份。')){words=structuredClone(seed);save();renderCard();renderList()}};
-load();save();renderCard();renderList();
+document.querySelector('#signInBtn').onclick=()=>authAction('signin');
+document.querySelector('#signUpBtn').onclick=()=>authAction('signup');
+document.querySelector('#signOutBtn').onclick=async()=>{const {error}=await supabaseClient.auth.signOut();if(error)setCloudMessage(error.message,true);else{cloudUser=null;setAuthUI();}};
+load();save();renderCard();renderList();initCloudAuth();
 </script></body></html>
