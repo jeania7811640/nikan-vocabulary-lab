@@ -140,13 +140,11 @@ function mergeWordRecords(a,b){
     exjp:winner.exjp||other.exjp||'',
     exkr:winner.exkr||other.exkr||'',
     category:winner.category||other.category||'',
-    // Keep the review date and grade from the same record. Prefer the latest review date;
-    // on the same date, prefer the record with the latest updatedAt.
     ...(() => {
       const ad=String(a.lastReviewedDate||''), bd=String(b.lastReviewedDate||'');
       const at=Date.parse(a.updatedAt||'')||0, bt=Date.parse(b.updatedAt||'')||0;
-      const reviewWinner = bd>ad || (bd===ad && bt>at) ? b : a;
-      return {lastReviewedDate: reviewWinner.lastReviewedDate||'', lastGrade: reviewWinner.lastGrade||''};
+      const reviewWinner=bd>ad || (bd===ad && bt>at) ? b : a;
+      return {lastReviewedDate:reviewWinner.lastReviewedDate||'',lastGrade:reviewWinner.lastGrade||''};
     })(),
     updatedAt:new Date(Math.max(aTime,bTime,Date.now())).toISOString()
   };
@@ -322,11 +320,17 @@ document.querySelector('#audioJp').disabled=!w.jp;document.querySelector('#audio
 }
 function reveal(){const w=current();if(!w)return;revealed=true;const dir=document.querySelector('#direction').value;document.querySelector('#back').innerHTML=`<div class="answer">${dir!=='kr'?`<div class="langbox"><h3>日文 JAPANESE</h3><div class="word">${esc(w.jp)}</div><p class="reading">${esc(w.kana)}</p><p>${esc(w.exjp||'')}</p></div>`:''}${dir!=='jp'?`<div class="langbox"><h3>韓文 KOREAN</h3><div class="word">${esc(w.kr)}</div><p class="reading">${esc(w.roman)}</p><p>${esc(w.exkr||'')}</p></div>`:''}<div class="langbox"><h3>中文概念</h3><p><strong>${esc(w.zh)}</strong></p><small>${esc(w.category||'其他')}</small></div></div>`;document.querySelector('#back').classList.remove('hidden');document.querySelector('#ratings').classList.remove('hidden');document.querySelector('#reveal').classList.add('hidden')}
 function grade(g){
-  const w=current(); if(!w) return;
-  const n=new Date(); let reps=Number(w.repetitions)||0, interval=Number(w.interval)||0, ease=Number(w.ease)||2.5;
+  const card=current();
+  if(!card) return;
+  // IMPORTANT: current()/list() returns a copy. Update the canonical record in words[].
+  const w=words[card._i];
+  if(!w) return;
+  const n=new Date();
+  let reps=Number(w.repetitions)||0, interval=Number(w.interval)||0, ease=Number(w.ease)||2.5;
   if(g==='again'){
     reps=0; interval=0;
-    w.nextReview=new Date(n.getTime()+86400000).toLocaleDateString('en-CA');
+    const next=new Date(n); next.setDate(next.getDate()+1);
+    w.nextReview=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
   } else {
     reps++;
     if(g==='hard') interval=Math.max(1,Math.round((interval||1)*1.2));
@@ -334,13 +338,14 @@ function grade(g){
     else interval=reps===1?4:Math.max(6,Math.round((interval||4)*(ease+0.3)));
     if(g==='hard') ease=Math.max(1.3,ease-.15);
     if(g==='easy') ease+=.15;
-    w.nextReview=new Date(n.getTime()+interval*86400000).toLocaleDateString('en-CA');
+    const next=new Date(n); next.setDate(next.getDate()+interval);
+    w.nextReview=`${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
   }
   w.repetitions=reps; w.interval=interval; w.ease=+ease.toFixed(2);
   w.lastGrade=g;
   w.lastReviewedDate=today();
   w.updatedAt=n.toISOString();
-  // Save the exact reviewed word before moving to another card.
+  // Persist canonical record and refresh counters immediately.
   localStorage.setItem(KEY, JSON.stringify(words));
   renderStats();
   scheduleCloudSave();
@@ -399,7 +404,7 @@ function speak(text,lang){
 }
 function renderList(){const q=document.querySelector('#search').value.toLowerCase(),cat=document.querySelector('#catFilter').value;const arr=words.map((w,i)=>({...w,_i:i})).filter(w=>(!cat||w.category===cat)&&[w.zh,w.jp,w.kana,w.kr,w.roman].join(' ').toLowerCase().includes(q));document.querySelector('#wordList').innerHTML=arr.length?arr.map(w=>`<div class="item"><div><strong>${esc(w.zh)}</strong><small>${esc(w.jp)}（${esc(w.kana)}） · ${esc(w.kr)}</small><small>下次複習：${esc(w.nextReview||'尚未排程')} · ${esc(w.category||'其他')}</small></div><button data-del="${w._i}" aria-label="刪除單字">刪除</button></div>`).join(''):'<p class="muted">找不到符合的單字。</p>'}
 function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
-const fields=['zh','jp','kana','kr','roman','exjp','exkr','category','repetitions','interval','ease','nextReview','lastGrade','lastReviewedDate','client_id','updatedAt'];
+const fields=['zh','jp','kana','kr','roman','exjp','exkr','category','repetitions','interval','ease','nextReview','lastGrade'];
 function exportCSV(){const lines=[fields.join(','),...words.map(w=>fields.map(k=>csvCell(w[k])).join(','))];const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='nikan-vocabulary.csv';a.click();URL.revokeObjectURL(a.href)}
 function parseCSV(text){const rows=[];let row=[],cell='',q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'&&text[i+1]==='"'){cell+='"';i++}else if(c==='"')q=false;else cell+=c}else if(c==='"')q=true;else if(c===','){row.push(cell);cell=''}else if(c==='\n'){row.push(cell.replace(/\r$/,''));rows.push(row);row=[];cell=''}else cell+=c}if(cell.length||row.length){row.push(cell.replace(/\r$/,''));rows.push(row)}return rows}
 function importCSV(text){const rows=parseCSV(text.replace(/^\uFEFF/,''));if(rows.length<2)throw Error('CSV 沒有可匯入的資料');const hdr=rows.shift().map(s=>s.trim());let added=0;for(const r of rows){const o={};hdr.forEach((h,i)=>o[h]=r[i]??'');if(!o.zh||!o.jp||!o.kr)continue;const exists=words.some(w=>w.zh===o.zh&&w.jp===o.jp&&w.kr===o.kr);if(!exists){for(const k of ['repetitions','interval'])o[k]=Number(o[k]||0);o.ease=Number(o.ease||2.5);words.push(o);added++}}save();renderCard();renderList();alert(`匯入完成：新增 ${added} 個單字。`)}
@@ -421,6 +426,5 @@ document.querySelector('#resetBtn').onclick=()=>{if(confirm('這會刪除目前�
 document.querySelector('#signInBtn').onclick=()=>authAction('signin');
 document.querySelector('#signUpBtn').onclick=()=>authAction('signup');
 document.querySelector('#signOutBtn').onclick=async()=>{const {error}=await supabaseClient.auth.signOut();if(error)setCloudMessage(error.message,true);else{cloudUser=null;setAuthUI();}};
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){renderStats();renderCard();}});
-load();save();renderStats();renderCard();renderList();initCloudAuth();
+load();save();renderCard();renderList();initCloudAuth();
 </script></body></html>
