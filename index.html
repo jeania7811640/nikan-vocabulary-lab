@@ -29,11 +29,11 @@ button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid
 <section class="stats" aria-label="單字統計">
 <div class="stat"><span class="muted">單字總數</span><strong id="total">0</strong></div>
 <div class="stat"><span class="muted">今天待複習</span><strong id="due">0</strong></div>
-<div class="stat stat-filter" role="button" tabindex="0" data-level="new" aria-pressed="false"><span class="stat-label">尚未學習</span><strong id="count-new">0</strong></div>
-<div class="stat stat-filter" role="button" tabindex="0" data-level="hard" aria-pressed="false"><span class="stat-label">需加強</span><strong id="count-hard">0</strong></div>
-<div class="stat stat-filter" role="button" tabindex="0" data-level="early" aria-pressed="false"><span class="stat-label">初步熟悉</span><strong id="count-early">0</strong></div>
-<div class="stat stat-filter" role="button" tabindex="0" data-level="familiar" aria-pressed="false"><span class="stat-label">熟悉</span><strong id="count-familiar">0</strong></div>
-<div class="stat stat-filter" role="button" tabindex="0" data-level="known" aria-pressed="false"><span class="stat-label">已熟悉</span><strong id="known">0</strong></div>
+<div class="stat"><span class="muted">今天已複習</span><strong id="reviewed-today">0</strong></div>
+<div class="stat"><span class="stat-label">還不熟</span><strong id="today-again">0</strong></div>
+<div class="stat"><span class="stat-label">有點難</span><strong id="today-hard">0</strong></div>
+<div class="stat"><span class="stat-label">記住了</span><strong id="today-good">0</strong></div>
+<div class="stat"><span class="stat-label">很熟悉</span><strong id="today-easy">0</strong></div>
 </section>
 <div class="tabs"><button class="tab active" data-tab="study">單字卡</button><button class="tab" data-tab="library">單字庫</button><button class="tab" data-tab="add">新增單字</button><button class="tab" data-tab="settings">資料與設定</button></div>
 <div id="study" class="tabpane"><div class="layout"><section class="flash"><div><div class="row"><select id="deckFilter" aria-label="複習範圍"><option value="due">今天待複習</option><option value="all">全部單字</option><option value="new">尚未學習</option><option value="hard">需加強</option><option value="early">初步熟悉</option><option value="familiar">熟悉</option><option value="known">已熟悉</option></select><select id="direction" aria-label="測驗方向"><option value="zh">看中文，回想日韓文</option><option value="jp">看日文，回想意思與韓文</option><option value="kr">看韓文，回想意思與日文</option></select></div><div class="eyebrow" id="counter" style="margin-top:24px">CARD 1</div><div id="front"><div class="concept">準備中…</div></div><div id="back" class="hidden"></div></div><div><div class="actions"><button id="audioJp">🔊 日文發音</button><button id="audioKr">🔊 韓文發音</button><button id="reveal" class="primary">翻開答案</button></div><div id="ratings" class="actions hidden"><button data-grade="again">還不熟</button><button data-grade="hard">有點難</button><button data-grade="good" class="primary">記住了</button><button data-grade="easy">很熟悉</button></div><div class="actions"><button id="prev">← 上一張</button><button id="next">下一張 →</button></div></div></section><aside class="panel"><h2 style="margin-top:0">複習小提示</h2><p class="muted">先看中文概念，在心中說出日文與韓文，再翻開答案。記得了就選「記住了」；忘記或不確定就選「還不熟」。</p><hr style="border:0;border-top:1px solid var(--line)"><p><strong>間隔複習</strong></p><p class="muted">答題後會依評分安排下次複習日期。此版本使用簡化的 SM-2 風格排程；登入後，單字與複習進度會嘗試同步至雲端。</p><p id="sessionMsg" class="success"></p></aside></div></div>
@@ -114,6 +114,7 @@ async function pushCloud(silent=false) {
 }
 function normalizeText(v=''){return String(v??'').normalize('NFKC').trim().toLocaleLowerCase();}
 function wordContentKey(w){return [w.zh,w.jp,w.kr].map(normalizeText).join('||');}
+function isTargetWord(w){return normalizeText(w?.zh)==='約定、約會' && normalizeText(w?.jp)==='約束' && normalizeText(w?.kana)==='やくそく' && normalizeText(w?.kr)==='약속';}
 function progressScore(w){
   return (Number(w.repetitions)||0)*1000000 +
          (Number(w.interval)||0)*1000 +
@@ -145,8 +146,15 @@ async function cloudMergeAndLoad() {
   const {data:rows,error}=await supabaseClient.from('vocabulary_cards').select('client_id,data,updated_at').eq('user_id',cloudUser.id);
   if(error){setCloudMessage('讀取雲端失敗：'+error.message+'。請確認已執行 schema.sql。',true);return;}
 
-  const local=Array.isArray(words)?words:[];
-  const cloud=(rows||[]).map(r=>({...r.data,client_id:r.client_id,updatedAt:r.updated_at||r.data?.updatedAt||''}));
+  // Remove the specifically requested unwanted vocabulary item from both cloud and local data.
+  const unwantedRows=(rows||[]).filter(r=>isTargetWord(r.data||{}));
+  for(const row of unwantedRows){
+    const {error:removeError}=await supabaseClient.from('vocabulary_cards').delete().eq('user_id',cloudUser.id).eq('client_id',row.client_id);
+    if(removeError) throw removeError;
+  }
+  words=(Array.isArray(words)?words:[]).filter(w=>!isTargetWord(w));
+  const local=words;
+  const cloud=(rows||[]).filter(r=>!isTargetWord(r.data||{})).map(r=>({...r.data,client_id:r.client_id,updatedAt:r.updated_at||r.data?.updatedAt||''}));
   const cloudByContent=new Map();
   const duplicateClientIds=[];
   for(const item of cloud){
@@ -261,10 +269,10 @@ const seed=[
 {zh:'解決',jp:'解決',kana:'かいけつ',kr:'해결',roman:'haegyeol',exjp:'問題を解決しました。',exkr:'문제를 해결했어요.',category:'工作與學習'}
 ];
 let words=[],idx=0,revealed=false;
-function load(){try{const d=JSON.parse(localStorage.getItem(KEY));words=Array.isArray(d)&&d.length?d:structuredClone(seed)}catch{words=structuredClone(seed)}}
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY));words=Array.isArray(d)&&d.length?d:structuredClone(seed)}catch{words=structuredClone(seed)}words=words.filter(w=>!isTargetWord(w));localStorage.setItem(KEY,JSON.stringify(words))}
 function save(){const stamp=new Date().toISOString();const unique=new Map();for(const raw of words){const w={...raw,client_id:raw.client_id||crypto.randomUUID(),updatedAt:raw.updatedAt||stamp};const k=wordContentKey(w);if(!unique.has(k))unique.set(k,w);else{const prior=unique.get(k);const merged=mergeWordRecords(prior,w);merged.client_id=prior.client_id;unique.set(k,merged)}}words=[...unique.values()];if(typeof current==='function'&&typeof idx==='number'){const active=current();if(active&&active._i!==undefined&&words[active._i])words[active._i].updatedAt=stamp;}localStorage.setItem(KEY,JSON.stringify(words));renderStats();scheduleCloudSave()}
 const today=()=>new Date().toISOString().slice(0,10);
-function due(w){return !w.nextReview||w.nextReview<=today()}
+function due(w){return (!w.nextReview||w.nextReview<=today()) && w.lastReviewedDate!==today()}
 function familiarity(w){
   const reps=Number(w.repetitions||0), interval=Number(w.interval||0);
   if(w.lastGrade==='again'||w.lastGrade==='hard') return 'hard';
@@ -286,17 +294,12 @@ function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt
 function renderStats(){
   document.querySelector('#total').textContent=words.length;
   document.querySelector('#due').textContent=words.filter(due).length;
-  const counts={new:0,hard:0,early:0,familiar:0,known:0};
-  words.forEach(w=>counts[familiarity(w)]++);
-  document.querySelector('#count-new').textContent=counts.new;
-  document.querySelector('#count-hard').textContent=counts.hard;
-  document.querySelector('#count-early').textContent=counts.early;
-  document.querySelector('#count-familiar').textContent=counts.familiar;
-  document.querySelector('#known').textContent=counts.known;
-  document.querySelectorAll('.stat-filter').forEach(el=>{
-    const active=document.querySelector('#deckFilter').value===el.dataset.level;
-    el.classList.toggle('active',active);el.setAttribute('aria-pressed',String(active));
-  });
+  const reviewed=words.filter(w=>w.lastReviewedDate===today());
+  document.querySelector('#reviewed-today').textContent=reviewed.length;
+  document.querySelector('#today-again').textContent=reviewed.filter(w=>w.lastGrade==='again').length;
+  document.querySelector('#today-hard').textContent=reviewed.filter(w=>w.lastGrade==='hard').length;
+  document.querySelector('#today-good').textContent=reviewed.filter(w=>w.lastGrade==='good').length;
+  document.querySelector('#today-easy').textContent=reviewed.filter(w=>w.lastGrade==='easy').length;
 }
 function renderCard(){const w=current(),front=document.querySelector('#front'),back=document.querySelector('#back');revealed=false;document.querySelector('#back').classList.add('hidden');document.querySelector('#ratings').classList.add('hidden');document.querySelector('#reveal').classList.remove('hidden');if(!w){document.querySelector('#counter').textContent='完成';front.innerHTML='<div class="concept">這個範圍暫時沒有單字 🎉</div><p class="muted">試試「全部單字」或新增單字。</p>';return}
 document.querySelector('#counter').textContent=`CARD ${idx+1} / ${list().length}`;
@@ -307,7 +310,7 @@ if(dir==='kr')front.innerHTML=`<div class="eyebrow">한국어 · 韓文</div><di
 document.querySelector('#audioJp').disabled=!w.jp;document.querySelector('#audioKr').disabled=!w.kr;
 }
 function reveal(){const w=current();if(!w)return;revealed=true;const dir=document.querySelector('#direction').value;document.querySelector('#back').innerHTML=`<div class="answer">${dir!=='kr'?`<div class="langbox"><h3>日文 JAPANESE</h3><div class="word">${esc(w.jp)}</div><p class="reading">${esc(w.kana)}</p><p>${esc(w.exjp||'')}</p></div>`:''}${dir!=='jp'?`<div class="langbox"><h3>韓文 KOREAN</h3><div class="word">${esc(w.kr)}</div><p class="reading">${esc(w.roman)}</p><p>${esc(w.exkr||'')}</p></div>`:''}<div class="langbox"><h3>中文概念</h3><p><strong>${esc(w.zh)}</strong></p><small>${esc(w.category||'其他')}</small></div></div>`;document.querySelector('#back').classList.remove('hidden');document.querySelector('#ratings').classList.remove('hidden');document.querySelector('#reveal').classList.add('hidden')}
-function grade(g){const w=current();if(!w)return;const n=new Date();let reps=w.repetitions||0,interval=w.interval||0,ease=w.ease||2.5;if(g==='again'){reps=0;interval=0;w.nextReview=today();w.lastGrade='again'}else{reps++;if(g==='hard')interval=Math.max(1,Math.round((interval||1)*1.2));else if(g==='good')interval=reps===1?1:reps===2?3:Math.max(4,Math.round((interval||3)*ease));else interval=reps===1?4:Math.max(6,Math.round((interval||4)*(ease+0.3)));if(g==='hard')ease=Math.max(1.3,ease-.15);if(g==='easy')ease+=.15;w.nextReview=new Date(n.getTime()+interval*86400000).toISOString().slice(0,10);w.lastGrade=g}w.repetitions=reps;w.interval=interval;w.ease=+ease.toFixed(2);w.updatedAt=new Date().toISOString();save();document.querySelector('#sessionMsg').textContent=`已記錄：${{again:'安排再複習',hard:'標記為較難',good:'已記住',easy:'非常熟悉'}[g]}。下次複習：${w.nextReview}`;idx=(idx+1)%Math.max(1,list().length);renderCard()}
+function grade(g){const w=current();if(!w)return;const n=new Date();let reps=w.repetitions||0,interval=w.interval||0,ease=w.ease||2.5;if(g==='again'){reps=0;interval=0;w.nextReview=new Date(n.getTime()+86400000).toISOString().slice(0,10);w.lastGrade='again'}else{reps++;if(g==='hard')interval=Math.max(1,Math.round((interval||1)*1.2));else if(g==='good')interval=reps===1?1:reps===2?3:Math.max(4,Math.round((interval||3)*ease));else interval=reps===1?4:Math.max(6,Math.round((interval||4)*(ease+0.3)));if(g==='hard')ease=Math.max(1.3,ease-.15);if(g==='easy')ease+=.15;w.nextReview=new Date(n.getTime()+interval*86400000).toISOString().slice(0,10);w.lastGrade=g}w.repetitions=reps;w.interval=interval;w.ease=+ease.toFixed(2);w.lastReviewedDate=today();w.updatedAt=new Date().toISOString();save();document.querySelector('#sessionMsg').textContent=`今日分類：${{again:'還不熟',hard:'有點難',good:'記住了',easy:'很熟悉'}[g]}。今日已複習 ${words.filter(x=>x.lastReviewedDate===today()).length} 個單字；下次複習：${w.nextReview}`;idx=(idx+1)%Math.max(1,list().length);renderCard()}
 // iOS Safari/Chrome 的語音清單可能延遲載入；先快取並監聽 voiceschanged。
 let availableSpeechVoices=[];
 function refreshSpeechVoices(){
