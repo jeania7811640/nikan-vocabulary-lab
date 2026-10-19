@@ -366,6 +366,8 @@ const statLabels=document.querySelectorAll('.stats .muted,.stats .stat-label');s
 document.querySelectorAll('.tab').forEach(b=>b.textContent=tr(({study:'study',library:'library',add:'add',settings:'settings'})[b.dataset.tab]));
 const opts=[['#deckFilter option[value="due"]','dueFilter'],['#deckFilter option[value="all"]','all'],['#deckFilter option[value="new"]','new'],['#direction option[value="zh"]','dirZh'],['#direction option[value="jp"]','dirJp'],['#direction option[value="kr"]','dirKr']];opts.forEach(([s,k])=>t(s,k));
 t('#audioJp','audioJp');t('#audioKr','audioKr');t('#reveal','reveal');t('#prev','prev');t('#next','next');t('.flash + aside h2','hint');
+// Keep review rating buttons exactly consistent with the matching statistic labels.
+[['again','#today-again'],['hard','#today-hard'],['good','#today-good'],['easy','#today-easy']].forEach(([gradeId,statId])=>{const b=document.querySelector(`#ratings button[data-grade="${gradeId}"]`);const n=document.querySelector(statId);const label=n?.parentElement?.querySelector('.stat-label');if(b)b.textContent=label?.textContent?.trim()||tr(gradeId)});
 const aside=document.querySelector('.flash + aside');if(aside){const ps=aside.querySelectorAll('p');if(ps[0])ps[0].textContent=tr('hintText');if(ps[1])ps[1].textContent=tr('interval')}
 t('#add h2','addTitle');t('#addForm button[type="submit"]','submit');t('#settings h2','data');
 const labels=document.querySelectorAll('#addForm label');const keys=['zhLabel','category','jp','kana','kr','roman','exzh','exjp','exkr','enWord','enMeaning','enExample'];labels.forEach((e,i)=>{if(keys[i])e.textContent=tr(keys[i])+(i===0?' *':'')});
