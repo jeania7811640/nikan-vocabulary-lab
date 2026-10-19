@@ -127,7 +127,10 @@ function mergeWordRecords(a,b){
   const aTime=Date.parse(a.updatedAt||'')||0, bTime=Date.parse(b.updatedAt||'')||0;
   const winner=(bScore>aScore || (bScore===aScore && bTime>aTime))?b:a;
   const other=winner===a?b:a;
+  const todayKey=today();
+  const reviewedToday = (a.lastReviewedDate===todayKey) ? a : ((b.lastReviewedDate===todayKey) ? b : null);
   return {...other,...winner,
+    ...(reviewedToday ? {lastReviewedDate:todayKey,lastGrade:reviewedToday.lastGrade} : {}),
     repetitions:Math.max(Number(a.repetitions)||0,Number(b.repetitions)||0),
     interval:Math.max(Number(a.interval)||0,Number(b.interval)||0),
     ease:Math.max(Number(a.ease)||2.5,Number(b.ease)||2.5),
@@ -137,6 +140,9 @@ function mergeWordRecords(a,b){
     exjp:winner.exjp||other.exjp||'',
     exkr:winner.exkr||other.exkr||'',
     category:winner.category||other.category||'',
+    // Preserve the newest review event independently of the progress-score winner.
+    lastReviewedDate: (String(a.lastReviewedDate||'') >= String(b.lastReviewedDate||'')) ? (a.lastReviewedDate||b.lastReviewedDate||'') : (b.lastReviewedDate||a.lastReviewedDate||''),
+    lastGrade: (Date.parse(a.updatedAt||'')||0) >= (Date.parse(b.updatedAt||'')||0) ? (a.lastGrade||b.lastGrade||'') : (b.lastGrade||a.lastGrade||''),
     updatedAt:new Date(Math.max(aTime,bTime,Date.now())).toISOString()
   };
 }
@@ -271,7 +277,7 @@ const seed=[
 let words=[],idx=0,revealed=false;
 function load(){try{const d=JSON.parse(localStorage.getItem(KEY));words=Array.isArray(d)&&d.length?d:structuredClone(seed)}catch{words=structuredClone(seed)}words=words.filter(w=>!isTargetWord(w));localStorage.setItem(KEY,JSON.stringify(words))}
 function save(){const stamp=new Date().toISOString();const unique=new Map();for(const raw of words){const w={...raw,client_id:raw.client_id||crypto.randomUUID(),updatedAt:raw.updatedAt||stamp};const k=wordContentKey(w);if(!unique.has(k))unique.set(k,w);else{const prior=unique.get(k);const merged=mergeWordRecords(prior,w);merged.client_id=prior.client_id;unique.set(k,merged)}}words=[...unique.values()];if(typeof current==='function'&&typeof idx==='number'){const active=current();if(active&&active._i!==undefined&&words[active._i])words[active._i].updatedAt=stamp;}localStorage.setItem(KEY,JSON.stringify(words));renderStats();scheduleCloudSave()}
-const today=()=>new Date().toISOString().slice(0,10);
+const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
 function due(w){return (!w.nextReview||w.nextReview<=today()) && w.lastReviewedDate!==today()}
 function familiarity(w){
   const reps=Number(w.repetitions||0), interval=Number(w.interval||0);
@@ -367,7 +373,7 @@ function parseCSV(text){const rows=[];let row=[],cell='',q=false;for(let i=0;i<t
 function importCSV(text){const rows=parseCSV(text.replace(/^\uFEFF/,''));if(rows.length<2)throw Error('CSV 沒有可匯入的資料');const hdr=rows.shift().map(s=>s.trim());let added=0;for(const r of rows){const o={};hdr.forEach((h,i)=>o[h]=r[i]??'');if(!o.zh||!o.jp||!o.kr)continue;const exists=words.some(w=>w.zh===o.zh&&w.jp===o.jp&&w.kr===o.kr);if(!exists){for(const k of ['repetitions','interval'])o[k]=Number(o[k]||0);o.ease=Number(o.ease||2.5);words.push(o);added++}}save();renderCard();renderList();alert(`匯入完成：新增 ${added} 個單字。`)}
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('hidden',p.id!==b.dataset.tab));if(b.dataset.tab==='library')renderList()}));
 document.querySelector('#reveal').onclick=reveal;document.querySelector('#prev').onclick=()=>{idx=(idx-1+Math.max(1,list().length))%Math.max(1,list().length);renderCard()};document.querySelector('#next').onclick=()=>{idx=(idx+1)%Math.max(1,list().length);renderCard()};
-document.querySelector('#ratings').addEventListener('click',e=>{const b=e.target.closest('[data-grade]');if(b)grade(b.dataset.grade)});
+document.querySelector('#ratings').addEventListener('click',e=>{const b=e.target.closest('button[data-grade]');if(!b||b.disabled)return;e.preventDefault();b.disabled=true;try{grade(b.dataset.grade)}catch(err){console.error('Review grading failed',err);document.querySelector('#sessionMsg').textContent='儲存複習紀錄失敗，請匯出 CSV 備份後再試。';}finally{setTimeout(()=>{document.querySelectorAll('#ratings button[data-grade]').forEach(x=>x.disabled=false)},150)}});
 document.querySelector('#deckFilter').onchange=()=>{idx=0;renderStats();renderCard()};
 document.querySelectorAll('.stat-filter').forEach(el=>{
   const activate=()=>{document.querySelector('#deckFilter').value=el.dataset.level;idx=0;renderStats();renderCard();document.querySelector('[data-tab="study"]').click();};
