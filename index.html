@@ -112,42 +112,87 @@ async function pushCloud(silent=false) {
     setCloudMessage('雲端同步失敗：'+e.message+'。本機資料仍保留，請先匯出 CSV 備份。',true);
   } finally {cloudBusy=false;}
 }
+function normalizeText(v=''){return String(v??'').normalize('NFKC').trim().toLocaleLowerCase();}
+function wordContentKey(w){return [w.zh,w.jp,w.kr].map(normalizeText).join('||');}
+function progressScore(w){
+  return (Number(w.repetitions)||0)*1000000 +
+         (Number(w.interval)||0)*1000 +
+         (w.lastGrade==='easy'?100:0);
+}
+function mergeWordRecords(a,b){
+  // Prefer the record with stronger learning progress; retain non-empty metadata
+  // from either record. Ties prefer the most recently updated record.
+  const aScore=progressScore(a), bScore=progressScore(b);
+  const aTime=Date.parse(a.updatedAt||'')||0, bTime=Date.parse(b.updatedAt||'')||0;
+  const winner=(bScore>aScore || (bScore===aScore && bTime>aTime))?b:a;
+  const other=winner===a?b:a;
+  return {...other,...winner,
+    repetitions:Math.max(Number(a.repetitions)||0,Number(b.repetitions)||0),
+    interval:Math.max(Number(a.interval)||0,Number(b.interval)||0),
+    ease:Math.max(Number(a.ease)||2.5,Number(b.ease)||2.5),
+    // Keep the best-progress record's schedule and grade; fill optional text fields.
+    kana:winner.kana||other.kana||'',
+    roman:winner.roman||other.roman||'',
+    exjp:winner.exjp||other.exjp||'',
+    exkr:winner.exkr||other.exkr||'',
+    category:winner.category||other.category||'',
+    updatedAt:new Date(Math.max(aTime,bTime,Date.now())).toISOString()
+  };
+}
 async function cloudMergeAndLoad() {
   if(!supabaseClient || !cloudUser) return;
-  setCloudMessage('正在讀取雲端單字…');
+  setCloudMessage('正在讀取並整理雲端單字…');
   const {data:rows,error}=await supabaseClient.from('vocabulary_cards').select('client_id,data,updated_at').eq('user_id',cloudUser.id);
   if(error){setCloudMessage('讀取雲端失敗：'+error.message+'。請確認已執行 schema.sql。',true);return;}
 
   const local=Array.isArray(words)?words:[];
-  // Cloud rows carry the database updated_at timestamp, which is important when
-  // SQL has edited data directly. Prefer cloud data for an existing client_id.
-  const cloud=(rows||[]).map(r=>({...r.data,client_id:r.client_id,updatedAt:r.updated_at||r.data?.updatedAt||new Date().toISOString()}));
-  const cloudIds=new Set(cloud.map(w=>w.client_id).filter(Boolean));
-  const merged=[...cloud];
-  const contentKey=w=>[w.zh||'',w.jp||'',w.kr||''].map(v=>String(v).trim().toLocaleLowerCase()).join('||');
-  const byId=new Map(merged.filter(w=>w.client_id).map((w,i)=>[w.client_id,i]));
-  const seenContent=new Set(merged.map(contentKey));
-
-  // Reconcile cached copies by stable client_id. The cloud version wins for
-  // IDs that still exist in Supabase, so direct SQL edits are not overwritten
-  // by stale localStorage data.
-  for(const localWord of local){
-    if(localWord.client_id && byId.has(localWord.client_id)) continue;
-    const k=contentKey(localWord);
-    // Do not re-create duplicates removed from Supabase if an identical cloud
-    // entry already exists.
-    if(seenContent.has(k)) continue;
-    const copy={...localWord,client_id:localWord.client_id||crypto.randomUUID(),updatedAt:localWord.updatedAt||new Date().toISOString()};
-    byId.set(copy.client_id,merged.length);
-    merged.push(copy);
-    seenContent.add(k);
+  const cloud=(rows||[]).map(r=>({...r.data,client_id:r.client_id,updatedAt:r.updated_at||r.data?.updatedAt||''}));
+  const cloudByContent=new Map();
+  const duplicateClientIds=[];
+  for(const item of cloud){
+    const k=wordContentKey(item);
+    if(!k.replace(/\|/g,'')){continue;}
+    if(!cloudByContent.has(k)){cloudByContent.set(k,item);continue;}
+    const existing=cloudByContent.get(k);
+    const merged=mergeWordRecords(existing,item);
+    // Keep one stable client_id for the surviving cloud record.
+    merged.client_id=existing.client_id;
+    cloudByContent.set(k,merged);
+    if(item.client_id && item.client_id!==merged.client_id) duplicateClientIds.push(item.client_id);
   }
 
-  words=merged;
+  // Delete duplicate cloud rows only after we have selected a survivor per content key.
+  // Rows are scoped to the signed-in user and use their own client_id.
+  for(const duplicateId of [...new Set(duplicateClientIds)]){
+    const {error:deleteError}=await supabaseClient.from('vocabulary_cards')
+      .delete().eq('user_id',cloudUser.id).eq('client_id',duplicateId);
+    if(deleteError) throw deleteError;
+  }
+
+  const merged=[...cloudByContent.values()];
+  const byContent=new Map(merged.map(w=>[wordContentKey(w),w]));
+  // Merge local-only words, but never re-add a local duplicate of a cloud word.
+  for(const localWord of local){
+    const k=wordContentKey(localWord);
+    if(byContent.has(k)){
+      const existing=byContent.get(k);
+      const combined=mergeWordRecords(existing,localWord);
+      combined.client_id=existing.client_id;
+      byContent.set(k,combined);
+      continue;
+    }
+    const copy={...localWord,client_id:localWord.client_id||crypto.randomUUID(),updatedAt:localWord.updatedAt||new Date().toISOString()};
+    byContent.set(k,copy);
+  }
+
+  words=[...byContent.values()];
   localStorage.setItem(KEY,JSON.stringify(words));
   renderStats();renderCard();renderList();
-  await pushCloud(true);
-  setCloudMessage('同步完成：已以雲端資料為準，並合併 '+words.length+' 組單字。');
+  // Persist the deduplicated canonical set.
+  const payload=words.map(w=>({user_id:cloudUser.id,client_id:w.client_id||crypto.randomUUID(),data:{...w},updated_at:w.updatedAt||new Date().toISOString()}));
+  const {error:upsertError}=await supabaseClient.from('vocabulary_cards').upsert(payload,{onConflict:'user_id,client_id'});
+  if(upsertError) throw upsertError;
+  setCloudMessage('同步完成：已整理重複詞條，目前 '+words.length+' 組單字。');
 }
 function scheduleCloudSave(){
   if(!cloudUser) { updateStorageNotice(); return; }
@@ -217,7 +262,7 @@ const seed=[
 ];
 let words=[],idx=0,revealed=false;
 function load(){try{const d=JSON.parse(localStorage.getItem(KEY));words=Array.isArray(d)&&d.length?d:structuredClone(seed)}catch{words=structuredClone(seed)}}
-function save(){const stamp=new Date().toISOString();words.forEach(w=>{w.client_id=w.client_id||crypto.randomUUID();w.updatedAt=w.updatedAt||stamp});if(typeof current==='function'&&typeof idx==='number'){const active=current();if(active&&active._i!==undefined&&words[active._i])words[active._i].updatedAt=stamp;}localStorage.setItem(KEY,JSON.stringify(words));renderStats();scheduleCloudSave()}
+function save(){const stamp=new Date().toISOString();const unique=new Map();for(const raw of words){const w={...raw,client_id:raw.client_id||crypto.randomUUID(),updatedAt:raw.updatedAt||stamp};const k=wordContentKey(w);if(!unique.has(k))unique.set(k,w);else{const prior=unique.get(k);const merged=mergeWordRecords(prior,w);merged.client_id=prior.client_id;unique.set(k,merged)}}words=[...unique.values()];if(typeof current==='function'&&typeof idx==='number'){const active=current();if(active&&active._i!==undefined&&words[active._i])words[active._i].updatedAt=stamp;}localStorage.setItem(KEY,JSON.stringify(words));renderStats();scheduleCloudSave()}
 const today=()=>new Date().toISOString().slice(0,10);
 function due(w){return !w.nextReview||w.nextReview<=today()}
 function familiarity(w){
